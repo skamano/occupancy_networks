@@ -3,7 +3,6 @@ import torch.nn as nn
 from torchvision import models
 from im2mesh.common import normalize_imagenet
 
-
 class ConvEncoder(nn.Module):
     r''' Simple convolutional encoder network.
 
@@ -47,8 +46,9 @@ class Resnet18(nn.Module):
         use_linear (bool): whether a final linear layer should be used
     '''
 
-    def __init__(self, c_dim, normalize=True, use_linear=True):
+    def __init__(self, c_dim, device=None, normalize=True, use_linear=True):
         super().__init__()
+        self.device = device
         self.normalize = normalize
         self.use_linear = use_linear
         self.features = models.resnet18(pretrained=True)
@@ -62,7 +62,7 @@ class Resnet18(nn.Module):
 
     def forward(self, x):
         if self.normalize:
-            x = normalize_imagenet(x)
+            x = normalize_imagenet(x).to(self.device)
         net = self.features(x)
         out = self.fc(net)
         return out
