@@ -74,6 +74,7 @@ def get_model(cfg, device=None, dataset=None):
     method = cfg['method']
     model = method_dict[method].config.get_model(
         cfg, device=device, dataset=dataset)
+        
     return model
 
 

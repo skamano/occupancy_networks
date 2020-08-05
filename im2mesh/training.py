@@ -19,7 +19,8 @@ class BaseTrainer(object):
             eval_step_dict = self.eval_step(data)
 
             for k, v in eval_step_dict.items():
-                eval_list[k].append(v.cpu().detach().numpy())
+                # eval_list[k].append(v.cpu().detach().numpy())
+                eval_list[k].append(v)
 
         eval_dict = {k: np.mean(v) for k, v in eval_list.items()}
         return eval_dict
