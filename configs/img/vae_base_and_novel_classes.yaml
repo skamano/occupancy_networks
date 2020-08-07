@@ -19,7 +19,7 @@ model:
   c_dim: 512
   z_dim: 0
 training:
-  out_dir:  out/vae
+  out_dir:  out/vae-base-and-novel
   batch_size: 64
   print_every: 10
   visualize_every: 1000 
