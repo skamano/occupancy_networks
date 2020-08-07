@@ -73,6 +73,7 @@ class Trainer(BaseTrainer):
         # TODO: implement visualizations for input image and reconstructed image
         img = torch.cat([self.input_img, self.recon_img])
         path = os.path.join(self.vis_dir, 'sample_{}.png'.format(self.images_saved))
+        self.images_saved += 1
         save_image(img.data.cpu(), path)
 
     def compute_loss(self, data, metric='MSE'):

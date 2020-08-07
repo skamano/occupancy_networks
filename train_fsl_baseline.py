@@ -54,12 +54,12 @@ train_dataset = config.get_dataset('train', cfg)
 val_dataset = config.get_dataset('val', cfg)
 
 train_loader = torch.utils.data.DataLoader(
-    train_dataset, batch_size=batch_size, num_workers=4, shuffle=True,
+    train_dataset, batch_size=batch_size, num_workers=8, shuffle=True,
     collate_fn=data.collate_remove_none,
     worker_init_fn=data.worker_init_fn)
 
 val_loader = torch.utils.data.DataLoader(
-    val_dataset, batch_size=10, num_workers=4, shuffle=False,
+    val_dataset, batch_size=10, num_workers=8, shuffle=False,
     collate_fn=data.collate_remove_none,
     worker_init_fn=data.worker_init_fn)
 
@@ -75,9 +75,10 @@ data_vis = next(iter(vis_loader))
 model = config.get_model(cfg, device=device, dataset=train_dataset)
 if 'encoder_path' in cfg['model'].keys():
     # load pre-trained encoder
+    print('loading encoder from VAE')
     vae = VAE(c_dim=cfg['model']['c_dim'], device=device)
-    vae_state_dict = torch.load(cfg['model']['encoder_path'])
-    vae.load_state_dict(vae_state_dict['model'])
+    vae_state_dict = torch.load(cfg['model']['encoder_path'])['model']
+    vae.load_state_dict(vae_state_dict)
     model.encoder = copy.deepcopy(vae.encoder)
     for param in model.encoder.parameters():  # freeze encoder
         param.requires_grad = False

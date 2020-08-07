@@ -3,10 +3,12 @@ import torch
 import os
 import shutil
 import argparse
+import copy
 from tqdm import tqdm
 import time
 from collections import defaultdict
 import pandas as pd
+from im2im.autoencoder import VAE
 from im2mesh import config
 from im2mesh.checkpoints import CheckpointIO
 from im2mesh.utils.io import export_pointcloud
@@ -41,6 +43,16 @@ dataset = config.get_dataset('test', cfg, return_idx=True)
 
 # Model
 model = config.get_model(cfg, device=device, dataset=dataset)
+# model = config.get_model(cfg, device=device, dataset=train_dataset)
+if 'encoder_path' in cfg['model'].keys():
+    # load pre-trained encoder
+    print('loading encoder from VAE')
+    vae = VAE(c_dim=cfg['model']['c_dim'], device=device)
+    vae_state_dict = torch.load(cfg['model']['encoder_path'])['model']
+    vae.load_state_dict(vae_state_dict)
+    model.encoder = copy.deepcopy(vae.encoder)
+    for param in model.encoder.parameters():  # freeze encoder
+        param.requires_grad = False
 
 checkpoint_io = CheckpointIO(out_dir, model=model)
 checkpoint_io.load(cfg['test']['model_file'])

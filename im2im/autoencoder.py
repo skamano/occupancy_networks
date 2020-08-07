@@ -46,6 +46,7 @@ class VAE(nn.Module):
             nn.BatchNorm2d(8),
             nn.ReLU(),
             nn.ConvTranspose2d(8, image_channels, padding=2, kernel_size=4, stride=2),
+            # nn.BatchNorm2d(image_channels),
             nn.Sigmoid()
         )
         

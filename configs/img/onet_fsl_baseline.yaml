@@ -22,6 +22,7 @@ training:
   validate_every: 20000
 test:
   threshold: 0.2
+  model_file: model_best.pt
   eval_mesh: true
   eval_pointcloud: false
 generation:
