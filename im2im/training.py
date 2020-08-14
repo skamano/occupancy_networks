@@ -31,8 +31,8 @@ class Trainer(BaseTrainer):
         self.vis_dir = vis_dir
         self.eval_sample = eval_sample
         self.images_saved = 0
-        self.input_img = None
-        self.recon_img = None
+        # self.input_img = None
+        # self.recon_img = None
 
         if vis_dir is not None and not os.path.exists(vis_dir):
             os.makedirs(vis_dir)
@@ -59,7 +59,7 @@ class Trainer(BaseTrainer):
         self.model.eval()
         loss, metric, KLD = self.compute_loss(data)
         device = self.device
-        eval_dict = {'loss': loss, 'metric': metric, 'KLD': KLD}
+        eval_dict = {'loss': loss.item(), 'metric': metric.item(), 'KLD': KLD.item()}
 
         return eval_dict
 
@@ -71,10 +71,11 @@ class Trainer(BaseTrainer):
         device = self.device
 
         # TODO: implement visualizations for input image and reconstructed image
+        # FIXME: saving images from cuda tensors leads to GPU getting filled up during validation
         img = torch.cat([self.input_img, self.recon_img])
         path = os.path.join(self.vis_dir, 'sample_{}.png'.format(self.images_saved))
         self.images_saved += 1
-        save_image(img.data.cpu(), path)
+        save_image(img.data, path)
 
     def compute_loss(self, data, metric='MSE'):
         ''' Computes the loss.
@@ -90,8 +91,8 @@ class Trainer(BaseTrainer):
         device = self.device
         x = data['inputs'].to(device)
         recon_x, mu, logvar = self.model(x) 
-        self.input_img = x  # save data for visualization
-        self.recon_img = recon_x
+        self.input_img = x.cpu() # save data for visualization
+        self.recon_img = recon_x.cpu()
         device = self.device
         KLD = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
         if metric == 'BCE':

@@ -54,12 +54,12 @@ train_dataset = config.get_dataset('train', cfg)
 val_dataset = config.get_dataset('val', cfg)
 
 train_loader = torch.utils.data.DataLoader(
-    train_dataset, batch_size=batch_size, num_workers=8, shuffle=True,
+    train_dataset, batch_size=batch_size, num_workers=4, shuffle=True,
     collate_fn=data.collate_remove_none,
     worker_init_fn=data.worker_init_fn)
 
 val_loader = torch.utils.data.DataLoader(
-    val_dataset, batch_size=10, num_workers=8, shuffle=False,
+    val_dataset, batch_size=10, num_workers=4, shuffle=False,
     collate_fn=data.collate_remove_none,
     worker_init_fn=data.worker_init_fn)
 
@@ -83,6 +83,7 @@ if 'encoder_path' in cfg['model'].keys():
     for param in model.encoder.parameters():  # freeze encoder
         param.requires_grad = False
 
+del vae, vae_state_dict
 # Intialize training
 npoints = 1000
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
@@ -158,19 +159,20 @@ while True:
                                loss_val_best=metric_val_best)
         # Run validation
         if validate_every > 0 and (it % validate_every) == 0:
-            eval_dict = trainer.evaluate(val_loader)
-            metric_val = eval_dict[model_selection_metric]
-            print('Validation metric (%s): %.4f'
-                  % (model_selection_metric, metric_val))
+            with torch.no_grad():
+                eval_dict = trainer.evaluate(val_loader)
+                metric_val = eval_dict[model_selection_metric]
+                print('Validation metric (%s): %.4f'
+                    % (model_selection_metric, metric_val))
 
-            for k, v in eval_dict.items():
-                logger.add_scalar('val/%s' % k, v, it)
+                for k, v in eval_dict.items():
+                    logger.add_scalar('val/%s' % k, v, it)
 
-            if model_selection_sign * (metric_val - metric_val_best) > 0:
-                metric_val_best = metric_val
-                print('New best model (loss %.4f)' % metric_val_best)
-                checkpoint_io.save('model_best.pt', epoch_it=epoch_it, it=it,
-                                   loss_val_best=metric_val_best)
+                if model_selection_sign * (metric_val - metric_val_best) > 0:
+                    metric_val_best = metric_val
+                    print('New best model (loss %.4f)' % metric_val_best)
+                    checkpoint_io.save('model_best.pt', epoch_it=epoch_it, it=it,
+                                    loss_val_best=metric_val_best)
 
         # Exit if necessary
         if exit_after > 0 and (time.time() - t0) >= exit_after:

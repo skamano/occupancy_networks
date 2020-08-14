@@ -3,18 +3,20 @@ data:
   # dataset: Shapes3D
   path: data/ShapeNet
   img_folder: img_choy2016
-  classes: ['04401088', '03211117'] 
+  # classes: ['04401088', '03211117']  # telephone, display
+  # classes: ['04090263']  # rifle
+  classes: ['04401088', '03211117', '04090263']
   img_size: 224 
   points_subsample: 2048 
 model:
   encoder_latent: null
   decoder: cbatchnorm
   encoder: resnet18
-  encoder_path: out/vae/model_best.pt
-  c_dim: 512
+  encoder_path: out/vae-base-and-novel/model_best.pt
+  c_dim: 256 
   z_dim: 0
 training:
-  out_dir:  out/img/onet-fsl-baseline
+  out_dir:  out/img/onet-fsl-zero-shot-baseline
   batch_size: 64
   model_selection_metric: iou
   model_selection_mode: maximize

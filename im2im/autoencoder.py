@@ -9,6 +9,7 @@ from torchvision import transforms
 from torchvision.utils import save_image
 from im2mesh.encoder.conv import Resnet18
 
+
 class Flatten(nn.Module):
     def forward(self, input):
         return input.view(input.size(0), -1)
@@ -23,10 +24,11 @@ class VAE(nn.Module):
     def __init__(self, c_dim, device=None, image_channels=3):
         super(VAE, self).__init__()
         self.device = device
-        self.encoder = Resnet18(c_dim, use_linear=False).to(device)  
+        self.encoder = Resnet18(c_dim).to(device)  
         # 512 --> c_dim for use_linear=True, stays at 512 for use_linear=False 
-        self.fc1 = nn.Linear(512, c_dim)
-        self.fc2 = nn.Linear(512, c_dim)
+        # self.fc1 = nn.Linear(h_dim, c_dim)
+        self.fc1 = nn.Linear(c_dim, c_dim)  # 512 --> 256
+        self.fc2 = nn.Linear(c_dim, c_dim)
         self.fc3 = nn.Linear(c_dim, 512)
         self.decoder = nn.Sequential(
             UnFlatten(),
