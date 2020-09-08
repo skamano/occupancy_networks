@@ -1,0 +1,57 @@
+method: leo 
+data:
+  path: data/ShapeNet
+  img_folder: img_choy2016
+  base_classes: ['02691156', '02958343', '03001627', '03211117', '04401088', '03691459', '04379243']  # base classes
+  # num_classes: 5
+  train_on_val: True  # whether or not to train on validation data
+  embedding_crop: center
+  num_val_examples_per_class: 15  # num validation samples per class in a task instance 
+  novel_classes: ['02828884', '02933112', '03636649', '04090263', '04256520', '04530566', '03624134', '02808440', '03467517', '03642806']  # novel classes
+  train_split: meta_train
+  val_split: meta_val
+  test_split: meta_test
+  img_size: 224 
+  points_subsample: 2048 
+  # A single "shot" = (image, 2048 3D points w/ GT occupancy values). Regress the implicit shape for each of N shots
+model:
+  occnet:
+    decoder: cbatchnorm
+    encoder: resnet18
+    encoder_latent: null 
+    c_dim: 256
+    z_dim: 0
+  inner:
+    inner_unroll_length: 5  # num unroll steps in loop performing finetuning, i.e. num adaptation steps in param space
+    finetuning_unroll_length: 5
+    num_latents: 1024  # dimensionality of latent space (over model parameters, not OccNet encoder) 
+    inner_lr_init: 0.01  # initial learning rate for inner loop of leo
+    finetuning_lr_init: 0.001  # initial learning rate of finetuning loop
+    dropout_rate: 0.5  
+    kl_weight: 1e-3 
+    encoder_penalty_weight: 1e-9
+    l2_penalty_weight: 1e-8
+    orthogonality_penalty_weight: 1e-3
+  outer:  
+    num_classes:  # defines N for N-way K-shot task 
+    num_tr_examples_per_class: 5  # K as in K occupancy field regression problems given a single visual observation in a task instance
+meta_training:
+  out_dir:  out/img/leo
+  batch_size: 10  # number of N-way K-shot tasks in a single batch
+  model_selection_metric: iou
+  model_selection_mode: maximize
+  visualize_every: 20000
+  meta_validate_every: 20000
+meta_test:
+  threshold: 0.2
+  eval_mesh: true
+  eval_pointcloud: false
+generation:
+  batch_size: 100000
+  refine: false
+  n_x: 128
+  n_z: 1
+  resolution_0: 32 
+  upsampling_steps: 2
+
+
